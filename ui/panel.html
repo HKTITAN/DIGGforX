@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Digg</title>
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <header class="panel-head">
+    <button id="back" class="head-btn" aria-label="Back" type="button" hidden></button>
+    <div class="brand">
+      <span id="brand-wordmark"></span>
+      <span class="brand-sub">AI news, before it trends</span>
+    </div>
+    <button id="close" class="head-btn" aria-label="Close" type="button"></button>
+  </header>
+
+  <nav class="tabs" id="tabs" role="tablist">
+    <button class="tab" data-tab="trending" role="tab" aria-selected="true">Trending</button>
+    <button class="tab" data-tab="search" role="tab" aria-selected="false">Search</button>
+    <button class="tab" data-tab="status" role="tab" aria-selected="false">Status</button>
+  </nav>
+
+  <main id="main">
+    <!-- LIST views -->
+    <section id="view-trending" class="view" data-active="true">
+      <div class="stat-bar" id="stat-bar"></div>
+      <ol id="stories" class="story-list"></ol>
+      <div class="empty" id="trending-empty" hidden>No stories right now.</div>
+    </section>
+
+    <section id="view-search" class="view">
+      <div class="search-controls">
+        <input id="search-input" type="search" placeholder="Search Digg — stories, people, repos" autocomplete="off">
+        <div class="search-kinds">
+          <button class="kind active" data-kind="stories">Stories</button>
+          <button class="kind" data-kind="users">People</button>
+          <button class="kind" data-kind="repos">Repos</button>
+        </div>
+      </div>
+      <ol id="search-results" class="story-list"></ol>
+      <div class="empty" id="search-empty">Start typing to search.</div>
+    </section>
+
+    <section id="view-status" class="view">
+      <pre id="status-json">Loading…</pre>
+    </section>
+
+    <!-- DETAIL view: story reader -->
+    <section id="view-story" class="view story-view">
+      <div id="story-content"></div>
+    </section>
+  </main>
+
+  <footer class="panel-foot">
+    <a id="footer-link" href="https://digg.com/ai" target="_blank" rel="noopener">Open on digg.com →</a>
+  </footer>
+
+  <script src="../lib/icons.js"></script>
+  <script src="panel.js"></script>
+</body>
+</html>

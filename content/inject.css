@@ -1,0 +1,408 @@
+/* Digg for X — content script styles.
+   Goal: feel native inside X. We inherit X's font + text color from the
+   surrounding context and use X's own palette tokens for borders &
+   surfaces. Custom color: Digg green accent.
+
+   X palette (sampled from rendered styles on x.com):
+     primary text          rgb(231, 233, 234)   — dim/dark
+     primary text (light)  rgb(15, 20, 25)
+     secondary text        rgb(113, 118, 123)
+     border (dim)          rgb(47, 51, 54)
+     border (dark)         rgb(56, 68, 77)
+     border (light)        rgb(239, 243, 244)
+     surface (dim)         rgb(21, 32, 43)
+     surface (lights-out)  rgb(0, 0, 0)
+     surface (light)       rgb(255, 255, 255)
+     accent (X blue)       rgb(29, 155, 240)
+
+   We don't hard-pick a theme — we use transparent backgrounds and let
+   X's surrounding container show through. Borders use a CSS variable
+   that we resolve at runtime from the active page color. */
+
+:root {
+  --digg-green: rgb(0, 186, 124);
+  --digg-green-soft: rgba(0, 186, 124, 0.12);
+  --digg-green-ring: rgba(0, 186, 124, 0.35);
+  --digg-x-border: rgb(47, 51, 54);
+  --digg-x-muted: rgb(113, 118, 123);
+}
+html[style*="background-color: rgb(255, 255, 255)"],
+body[style*="background-color: rgb(255, 255, 255)"] {
+  --digg-x-border: rgb(239, 243, 244);
+}
+
+/* ============================================================ */
+/*  Sidebar tab — sits inside AppTabBar, mimics Home/Explore/…  */
+/* ============================================================ */
+a.digg-sidenav-link {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 12px;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 9999px;
+  transition: background-color 0.15s ease;
+  font: inherit;
+  font-family: "TwitterChirp", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 20px;
+  line-height: 24px;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  font-weight: 400;
+}
+a.digg-sidenav-link:hover {
+  background-color: rgba(231, 233, 234, 0.1);
+}
+a.digg-sidenav-link .digg-sidenav-icon {
+  width: 26.25px;
+  height: 26.25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+  flex-shrink: 0;
+}
+a.digg-sidenav-link .digg-sidenav-icon svg { width: 100%; height: 100%; }
+a.digg-sidenav-link .digg-sidenav-label {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  color: inherit;
+}
+a.digg-sidenav-link .digg-sidenav-label svg {
+  height: 19px;
+  width: auto;
+  display: block;
+}
+a.digg-sidenav-link .digg-sidenav-badge {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 9999px;
+  background: var(--digg-green);
+  color: #0a0a0a;
+  line-height: 1.4;
+  letter-spacing: 0.2px;
+}
+@media (max-width: 1300px) {
+  a.digg-sidenav-link .digg-sidenav-label,
+  a.digg-sidenav-link .digg-sidenav-badge { display: none; }
+  a.digg-sidenav-link { justify-content: center; padding: 12px; }
+}
+
+/* ============================================================ */
+/*  Slide-out panel                                              */
+/* ============================================================ */
+.digg-overlay {
+  position: fixed; inset: 0;
+  background: rgba(91, 112, 131, 0.4);
+  z-index: 999998;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s ease;
+  backdrop-filter: blur(2px);
+}
+.digg-overlay[data-open="true"] { opacity: 1; pointer-events: auto; }
+.digg-panel {
+  position: fixed; top: 0; left: 0; bottom: 0;
+  width: min(440px, 92vw);
+  z-index: 999999;
+  transform: translateX(-110%);
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.5);
+  display: flex; flex-direction: column;
+}
+.digg-panel[data-open="true"] { transform: translateX(0); }
+.digg-panel iframe {
+  flex: 1; border: 0; width: 100%; height: 100%;
+}
+
+/* ============================================================ */
+/*  Profile-page Digg card — feels like a native X profile row  */
+/* ============================================================ */
+.digg-profile-card {
+  font: inherit;
+  font-family: "TwitterChirp", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: inherit;
+  padding: 12px 16px 16px;
+  border-bottom: 1px solid var(--digg-x-border);
+  position: relative;
+}
+.digg-profile-card.is-loading { opacity: 0.55; }
+.digg-profile-card.is-empty { display: none; }
+
+.digg-profile-card .digg-card-head {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 12px;
+}
+.digg-profile-card .digg-card-head .digg-logo {
+  display: inline-flex; align-items: center;
+  color: var(--digg-green);
+  margin-right: -2px;
+}
+.digg-profile-card .digg-card-head .digg-logo svg {
+  height: 20px; width: auto; display: block;
+}
+.digg-profile-card .digg-card-head .digg-sub {
+  font-size: 13px; color: var(--digg-x-muted);
+  margin-left: 4px;
+}
+.digg-profile-card .digg-card-head .digg-card-actions { margin-left: auto; }
+.digg-profile-card .digg-cta {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: transparent;
+  color: inherit;
+  font-weight: 700; font-size: 13px;
+  text-decoration: none;
+  border: 1px solid var(--digg-x-border);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  font-family: inherit;
+}
+.digg-profile-card .digg-cta:hover { background: rgba(15, 20, 25, 0.06); }
+html[style*="rgb(0, 0, 0)"] .digg-profile-card .digg-cta:hover,
+html[style*="rgb(21, 32, 43)"] .digg-profile-card .digg-cta:hover {
+  background: rgba(231, 233, 234, 0.08);
+}
+
+/* Stats row — looks like X's Following / Followers line */
+.digg-profile-card .digg-stats {
+  display: flex; flex-wrap: wrap;
+  gap: 18px;
+  margin-bottom: 14px;
+  font-size: 15px;
+  line-height: 20px;
+}
+.digg-profile-card .digg-stat {
+  color: var(--digg-x-muted);
+  display: inline-flex; align-items: baseline; gap: 4px;
+}
+.digg-profile-card .digg-stat-value {
+  color: inherit;
+  font-weight: 700;
+  color: rgb(15, 20, 25);
+}
+html[style*="rgb(0, 0, 0)"] .digg-profile-card .digg-stat-value,
+html[style*="rgb(21, 32, 43)"] .digg-profile-card .digg-stat-value,
+body[style*="rgb(0, 0, 0)"] .digg-profile-card .digg-stat-value {
+  color: rgb(231, 233, 234);
+}
+
+/* Use the document's actual text color via inherit on a wrapper.
+   Fallback: use 'currentColor' inherited from X's text container. */
+.digg-profile-card { color: rgb(231, 233, 234); }
+html[style*="background-color: rgb(255, 255, 255)"] .digg-profile-card,
+body[style*="background-color: rgb(255, 255, 255)"] .digg-profile-card {
+  color: rgb(15, 20, 25);
+}
+.digg-profile-card .digg-stat-value { color: inherit; }
+
+.digg-profile-card .digg-category-row {
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  margin-bottom: 12px;
+}
+.digg-profile-card .digg-category {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 10px;
+  border: 1px solid var(--digg-green-ring);
+  background: var(--digg-green-soft);
+  color: var(--digg-green);
+  border-radius: 9999px;
+  font-weight: 700; font-size: 13px;
+  line-height: 18px;
+  text-decoration: none;
+  font-family: inherit;
+}
+.digg-profile-card .digg-category:hover { filter: brightness(1.1); }
+
+.digg-profile-card .digg-section-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: inherit;
+  opacity: 0.7;
+  margin: 14px 0 6px;
+  letter-spacing: 0.1px;
+}
+.digg-profile-card .digg-classification {
+  font-size: 15px; line-height: 22px;
+  color: inherit;
+}
+
+/* Distribution chips — inline pills, X-style chip vibe */
+.digg-profile-card .digg-chips {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-top: 6px;
+}
+.digg-profile-card .digg-chip {
+  display: inline-flex; align-items: baseline; gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background: rgba(127, 127, 127, 0.08);
+  border: 1px solid var(--digg-x-border);
+  font-size: 13px;
+  line-height: 16px;
+  font-family: inherit;
+  color: inherit;
+}
+.digg-profile-card .digg-chip strong {
+  font-weight: 700;
+  color: var(--digg-green);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+.digg-profile-card .digg-chip .digg-chip-label {
+  text-transform: capitalize;
+}
+
+/* Stories featuring this user */
+.digg-profile-card .digg-mini-stories {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.digg-profile-card .digg-mini-story {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-family: inherit;
+}
+.digg-profile-card .digg-mini-story:hover {
+  background: rgba(127, 127, 127, 0.08);
+  border-color: var(--digg-x-border);
+}
+.digg-profile-card .digg-mini-meta {
+  font-size: 12px;
+  color: var(--digg-x-muted);
+  margin-bottom: 2px;
+  display: flex;
+  gap: 6px;
+}
+.digg-profile-card .digg-mini-rank {
+  color: var(--digg-green);
+  font-weight: 700;
+}
+.digg-profile-card .digg-mini-title {
+  font-size: 14px;
+  line-height: 19px;
+  font-weight: 600;
+}
+
+/* ============================================================ */
+/*  Inline @username badges                                      */
+/* ============================================================ */
+.digg-inline-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  vertical-align: 1px;
+  margin-left: 6px;
+  padding: 0 7px;
+  height: 18px;
+  border-radius: 9999px;
+  background: var(--digg-green-soft);
+  color: var(--digg-green);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  border: 1px solid var(--digg-green-ring);
+  text-decoration: none;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+  font-family: inherit;
+}
+.digg-inline-badge:hover { filter: brightness(1.12); }
+.digg-inline-badge svg { color: var(--digg-green); width: 11px; height: 11px; }
+
+/* ============================================================ */
+/*  Right-column "Trending on Digg" widget                       */
+/* ============================================================ */
+.digg-trending-widget {
+  font-family: "TwitterChirp", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin: 0 0 16px;
+  border: 1px solid var(--digg-x-border);
+  border-radius: 16px;
+  overflow: hidden;
+  font-size: 15px;
+  color: inherit;
+  background: transparent;
+}
+.digg-trending-widget header {
+  padding: 12px 16px;
+  font-weight: 800;
+  font-size: 20px;
+  line-height: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+}
+.digg-trending-widget header > .flame {
+  color: var(--digg-green);
+  display: inline-flex; align-items: center;
+  flex-shrink: 0;
+}
+.digg-trending-widget header > .flame svg { width: 22px; height: 22px; }
+.digg-trending-widget .digg-trend-brand {
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.digg-trending-widget .digg-trend-brand svg {
+  height: 18px; width: auto;
+  color: currentColor;
+  display: block;
+}
+.digg-trending-widget .digg-trend-status {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--digg-x-muted);
+  letter-spacing: 0;
+}
+.digg-trending-widget ol { list-style: none; margin: 0; padding: 0; }
+.digg-trending-widget li button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  padding: 12px 16px;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  border-top: 1px solid var(--digg-x-border);
+}
+.digg-trending-widget li button:hover { background: rgba(127, 127, 127, 0.06); }
+.digg-trending-widget .digg-trend-meta {
+  font-size: 13px;
+  color: var(--digg-x-muted);
+  margin-bottom: 2px;
+  display: flex; gap: 6px; align-items: center;
+}
+.digg-trending-widget .digg-trend-rank {
+  font-weight: 700;
+  color: var(--digg-green);
+}
+.digg-trending-widget .digg-trend-title {
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 20px;
+  color: inherit;
+}
+.digg-trending-widget footer { padding: 12px 16px; border-top: 1px solid var(--digg-x-border); }
+.digg-trending-widget footer button {
+  background: transparent;
+  border: 0;
+  color: var(--digg-green);
+  font-family: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 0;
+  font-weight: 500;
+}
+.digg-trending-widget footer button:hover { text-decoration: underline; }
