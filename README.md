@@ -1,4 +1,8 @@
-# DIGG for X
+<p align="center">
+  <img src=".github/assets/digg-logo.svg" alt="DIGG" height="80">
+</p>
+
+<h1 align="center">DIGG for X</h1>
 
 A Chrome extension that injects [Digg](https://digg.com)'s AI-news layer into [X (twitter.com)](https://x.com) — adds a "Digg" tab to the left sidebar, enriches profile pages with Digg's classification / gravity / vibe & topic distributions, drops a "Trending on Digg" widget into the right column, and includes an in-place story reader so you can read full Digg stories without leaving X.
 
