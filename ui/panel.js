@@ -7,12 +7,16 @@ const ICONS = window.DIGG_ICONS;
 const DIGG = "https://digg.com";
 
 document.getElementById("brand-wordmark").innerHTML = ICONS.wordmark;
-document.getElementById("close").innerHTML = ICONS.close;
-document.getElementById("back").innerHTML = ICONS.arrow;
-document.getElementById("back").style.transform = "rotate(180deg)";
 
-document.getElementById("close").addEventListener("click", () => {
-  parent.postMessage({ source: "digg-panel", type: "close" }, "*");
+// One button — morphs between close (×) and back (chevron-left) as we
+// navigate into / out of the in-place story reader. The icon is a 3-line
+// SVG skeleton that tweens between states; close ⇄ back is a cross-group
+// morph (× → chevron) so coordinates interpolate rather than rotating.
+const navIcon = new MorphIcon(document.getElementById("nav-icon"), "close", { size: 20 });
+const navBtn = document.getElementById("nav-btn");
+navBtn.addEventListener("click", () => {
+  if (state.view === "story") setView(state.fromView || "trending");
+  else parent.postMessage({ source: "digg-panel", type: "close" }, "*");
 });
 
 // Robust message bridge. Two failure modes to handle:
@@ -92,7 +96,17 @@ function setView(name) {
   document.querySelectorAll(".view").forEach((v) => v.dataset.active = (v.id === `view-${name}`).toString());
   document.querySelectorAll(".tab").forEach((t) => t.setAttribute("aria-selected", (t.dataset.tab === name).toString()));
   document.getElementById("tabs").hidden = name === "story";
-  document.getElementById("back").hidden = name !== "story";
+
+  // Morph the header icon: close (×) when at the top level, back (chevron-left)
+  // when reading a story. One button, one icon, one continuous motion.
+  if (name === "story") {
+    navIcon.morphTo("back");
+    navBtn.setAttribute("aria-label", "Back");
+  } else {
+    navIcon.morphTo("close");
+    navBtn.setAttribute("aria-label", "Close");
+  }
+
   const footerLink = document.getElementById("footer-link");
   if (name === "story") {
     footerLink.href = state.storyData?.diggUrl || (state.storySlug ? `${DIGG}/ai/${encodeURIComponent(state.storySlug)}` : `${DIGG}/ai`);
@@ -105,7 +119,6 @@ function setView(name) {
 }
 
 document.querySelectorAll(".tab").forEach((tab) => tab.addEventListener("click", () => setView(tab.dataset.tab)));
-document.getElementById("back").addEventListener("click", () => setView(state.fromView || "trending"));
 
 window.addEventListener("message", (e) => {
   if (!e.data || e.data.source !== "digg-host") return;

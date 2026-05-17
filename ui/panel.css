@@ -27,11 +27,20 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
 /* ---------- Header ---------- */
 .panel-head {
   display: flex; align-items: center; gap: 10px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
+  padding: 14px 16px;
   position: sticky; top: 0; z-index: 2;
   background: var(--bg);
   min-height: 53px;
+}
+/* Sub-pixel hairline under the header — barely there, but enough to
+   anchor it visually when content scrolls beneath. */
+.panel-head::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 1px;
+  background: var(--border);
+  opacity: 0.55;
 }
 .brand { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
 .brand-sub { color: var(--fg-soft); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -41,19 +50,23 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
 .head-btn {
   background: transparent; border: 0;
   color: var(--fg); cursor: pointer;
-  width: 34px; height: 34px;
+  width: 36px; height: 36px;
   border-radius: 9999px;
   display: inline-flex; align-items: center; justify-content: center;
   flex-shrink: 0;
+  transition: background-color 180ms ease, color 180ms ease, transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.head-btn:hover { background: rgba(231, 233, 234, 0.1); }
+.head-btn:hover { background: rgba(231, 233, 234, 0.07); color: var(--accent); }
+.head-btn:active { transform: scale(0.92); }
 .head-btn svg { width: 20px; height: 20px; }
 .head-btn[hidden] { display: none; }
+/* The morphing svg sits inside an inline-flex host the MorphIcon mounts to;
+   make sure it centers cleanly inside the button. */
+.morph-icon-host { line-height: 0; }
 
 /* ---------- Tabs ---------- */
 .tabs {
   display: flex;
-  border-bottom: 1px solid var(--border);
   position: sticky; top: 53px; z-index: 1;
   background: var(--bg);
 }
@@ -63,23 +76,27 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
   background: transparent;
   border: 0;
   color: var(--fg-soft);
-  padding: 14px 0 12px;
+  padding: 16px 0 14px;
   font: inherit;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   position: relative;
-  font-size: 15px;
+  font-size: 14px;
+  letter-spacing: 0.1px;
+  transition: color 200ms ease;
 }
-.tab:hover { background: rgba(231, 233, 234, 0.03); color: var(--fg); }
+.tab:hover { color: var(--fg); }
 .tab[aria-selected="true"] { color: var(--fg); }
+/* The selected-tab indicator is a tiny green dot, not a heavy bar.
+   Quieter, more confident in itself. */
 .tab[aria-selected="true"]::after {
   content: "";
   position: absolute;
   left: 50%; transform: translateX(-50%);
-  bottom: 0;
-  height: 4px;
-  width: 56px;
-  border-radius: 2px;
+  bottom: 6px;
+  height: 3px;
+  width: 3px;
+  border-radius: 9999px;
   background: var(--accent);
 }
 
@@ -99,7 +116,9 @@ main { flex: 1; overflow: auto; }
 
 /* ---------- Story list ---------- */
 .story-list { list-style: none; padding: 0; margin: 0; }
-.story-list li { border-bottom: 1px solid var(--border); }
+/* Hairline dividers — barely there. Lets the content breathe rather than
+   sit in fenced rows. */
+.story-list li { border-bottom: 1px solid var(--border); border-color: rgba(47, 51, 54, 0.5); }
 .story-list li > button,
 .story-list li > a {
   display: block; width: 100%; text-align: left;

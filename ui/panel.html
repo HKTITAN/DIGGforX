@@ -8,12 +8,14 @@
 </head>
 <body>
   <header class="panel-head">
-    <button id="back" class="head-btn" aria-label="Back" type="button" hidden></button>
     <div class="brand">
       <span id="brand-wordmark"></span>
       <span class="brand-sub">AI news, before it trends</span>
     </div>
-    <button id="close" class="head-btn" aria-label="Close" type="button"></button>
+    <!-- One button, one icon — morphs between close and back as we navigate. -->
+    <button id="nav-btn" class="head-btn" aria-label="Close" type="button">
+      <span id="nav-icon"></span>
+    </button>
   </header>
 
   <nav class="tabs" id="tabs" role="tablist">
@@ -58,6 +60,7 @@
   </footer>
 
   <script src="../lib/icons.js"></script>
+  <script src="../lib/morph-icon.js"></script>
   <script src="panel.js"></script>
 </body>
 </html>
